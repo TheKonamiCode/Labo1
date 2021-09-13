@@ -13,7 +13,7 @@ exports.invalidUrl = function(req, res) {
 const availableEndpoints = [
   {
     method: "GET",
-    option: "/maths",
+    option: "api/maths",
   },
 ]
 

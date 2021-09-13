@@ -5,7 +5,7 @@ module.exports = http.createServer((req, res) => {
   var controller = require('./controller.js');
   const reqUrl = url.parse(req.url, true);
   const pathName = reqUrl.pathname;
-  if (pathName == '/math' && req.method === 'GET') {
+  if (pathName == '/maths' && req.method === 'GET') {
 
     controller.math(req, res);
   }

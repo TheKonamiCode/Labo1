@@ -1,7 +1,7 @@
 exports.invalidUrl = function(req, res) {
   var response = [
     {
-      "message": "Endpoint incorrect. Les options possibles sont "
+      "message": "Incorrect Endpoint. The possible option is "
     },
     availableEndpoints
   ]
@@ -13,7 +13,7 @@ exports.invalidUrl = function(req, res) {
 const availableEndpoints = [
   {
     method: "GET",
-    getCours: "/math",
+    option: "/maths",
   },
 ]
 

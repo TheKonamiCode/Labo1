@@ -158,7 +158,7 @@ exports.math = function (req, res) {
   }
 
   var response = [
-    Object.fromEntries(params),
+    params.entries(),
     {
       key: keyValue
     }

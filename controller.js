@@ -1,4 +1,4 @@
-exports.invalidUrl = function(req, res) {
+exports.invalidUrl = function (req, res) {
   var response = [
     {
       "message": "Incorrect Endpoint. The possible option is "
@@ -30,13 +30,59 @@ exports.math = function (req, res) {
   const op = params.get('op');
 
   const nbParams = Array.from(params.entries()).length;
-  if (nbParams == 3) {
 
-    const x = Number(params.get('x'));
-    const y = Number(params.get('y'));
-    if (op != null && x != null && y != null)
-      if (!isNaN(x) && !isNaN(y)) {
+  let valid = true;
 
+  if (op == "" || op == null) {
+
+    valid = false;
+    keyValue = "'op' parameter is missing";
+  }
+  else if (op != " " && op != "-" && op != "*" && op != "/" && op != "%" && op != "!" && op != "p" && op != 'np') {
+
+    valid = false;
+    keyValue = "unknown operation";
+  }
+  else if (((op == " " || op == "-" || op == "*" || op == "/" || op == "%") && nbParams > 3) || ((op == "!" || op == "p" || op == 'np') && nbParams > 2)) {
+
+    valid = false;
+    keyValue = "too many parameters";
+  }
+  else if (((op == " " || op == "-" || op == "*" || op == "/" || op == "%") && nbParams < 3) || ((op == "!" || op == "p" || op == 'np') && nbParams < 2)) {
+
+    valid = false;
+    keyValue = "not enough parameters";
+  }
+  else if (nbParams == 3) {
+
+    const xParam = params.get('x');
+    const yParam = params.get('y');
+
+    if (xParam == "" || xParam == null) {
+
+      valid = false;
+      keyValue = "'x' parameter is missing";
+    }
+    else if (yParam == "" || yParam == null) {
+
+      valid = false;
+      keyValue = "'y' parameter is missing";
+    }
+    else {
+
+      const x = Number(xParam);
+      const y = Number(yParam);
+      if (isNaN(x)) {
+
+        valid = false;
+        keyValue = "parameter value of x is not a numbers";
+      }
+      else if (isNaN(y)) {
+
+        valid = false;
+        keyValue = "parameter value of y is not a numbers";
+      }
+      else {
         if (op == ' ') {
 
           keyValue = x + y;
@@ -48,121 +94,100 @@ exports.math = function (req, res) {
           keyValue = x * y;
         }
         else if (op == '/') {
-          keyValue = x / y;
+
+          if (y == 0 && x == 0) {
+            keyValue = "NaN";
+          }
+          else if (y == 0) {
+            keyValue = "Infinity";
+          }
+          else {
+            keyValue = x / y;
+          }
         }
         else if (op == '%') {
-          keyValue = x % y;
-        }
-        else {
 
-          key = "error";
-          keyValue = "parameter value of op does not represent a valid operation";
-          res.statusCode = 422;
+          if (y == 0) {
+            keyValue = "NaN";
+          }
+          else {
+            keyValue = x % y;
+          }
         }
       }
-      else {
-
-        key = "error";
-        keyValue = "parameter value of x/y are not numbers";
-
-        res.statusCode = 422;
-      }
-    else {
-
-      key = "error";
-      keyValue = "parameters names are invalid ";
-
-      res.statusCode = 422;
     }
   }
   else if (nbParams == 2) {
 
-    const n = Number(params.get('n'));
-    if (n != null) {
-      if (!isNaN(n)) {
+    const nParam = params.get('n');
+    if (nParam == null) {
 
-        if (op == '!') {
-
-          keyValue = 1;
-          if (n != 0 && n != 1) {
-            for (var i = n; i > 0; --i) {
-              keyValue *= i;
-            }
-          }
-        }
-        else if (op == 'p') {
-
-          keyValue = isPrime(n);
-        }
-        else if (op == 'np') {
-
-          let j = 0;
-          let nb = 0;
-          let lastPrimeNumber = 0;
-          while (j < n) {
-            if (isPrime(nb)) {
-              ++j;
-              lastPrimeNumber = nb;
-            }
-            ++nb;
-          }
-
-          keyValue = lastPrimeNumber;
-        }
-        else {
-
-          key = "error";
-          keyValue = "parameter value of op does not represent a valid operation";
-          res.statusCode = 422;
-        }
-      }
-      else {
-
-        key = "error";
-        keyValue = "parameter value of n is not a number";
-
-        res.statusCode = 422;
-      }
+      valid = false;
+      keyValue = "'n' parameter is missing";
     }
     else {
 
-      key = "error";
-      keyValue = "parameters names are invalid ";
+      const n = Number(nParam);
+      if (isNaN(n)) {
 
-      res.statusCode = 422;
+        valid = false;
+        keyValue = "parameter value of n is not a number";
+      }
+      else if (op == '!') {
+
+        keyValue = 1;
+        if (n != 0 && n != 1) {
+          for (var i = n; i > 0; --i) {
+            keyValue *= i;
+          }
+        }
+      }
+      else if (op == 'p') {
+
+        keyValue = isPrime(n);
+      }
+      else if (op == 'np') {
+
+        let j = 0;
+        let nb = 0;
+        let lastPrimeNumber = 0;
+        while (j < n) {
+          if (isPrime(nb)) {
+            ++j;
+            lastPrimeNumber = nb;
+          }
+          ++nb;
+        }
+
+        keyValue = lastPrimeNumber;
+      }
     }
 
-
-
-  }
-  else if (nbParams < 2) {
-
-    key = "error";
-    keyValue = "Not enough parameter";
-
-    res.statusCode = 422;
-  }
-  else if (nbParams > 3) {
-
-    key = "error";
-    keyValue = "Too many parameters";
-
-    res.statusCode = 422;
   }
   else {
 
-    key = "error";
+    valid = false;
     keyValue = "How did you even got here?????";
+  }
+
+  let response = {};
+
+  for (const [key, value] of params.entries()) {
+
+    response[key] = value;
+  }
+
+  if (valid) {
+
+    response["value"] = keyValue;
+  }
+  else {
+
+    response["error"] = keyValue;
 
     res.statusCode = 422;
   }
-
-  var response = [
-    Array.from(params.entries()),
-    {
-      key: keyValue
-    }
-  ];
+  
   res.setHeader('content-Type', 'Application/json');
   res.end(JSON.stringify(response));
 }
